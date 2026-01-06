@@ -1,0 +1,208 @@
+#!/bin/bash
+# ccsync - Claude Code Config Sync Utility
+# Syncs Claude Code config files across machines via git
+set -e
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CLAUDE_DIR="$HOME/.claude"
+INSTALL_PATH="/usr/local/bin/ccsync"
+
+# Files/dirs to skip when syncing
+SKIP_PATTERNS=("ccsync" "README.md" "README" ".git" ".gitignore" "LICENSE")
+
+should_skip() {
+    local name="$1"
+    for pattern in "${SKIP_PATTERNS[@]}"; do
+        [[ "$name" == "$pattern" ]] && return 0
+    done
+    return 1
+}
+
+cmd_install() {
+    echo "Installing ccsync..."
+
+    # Add ccsync to PATH
+    if [[ -L "$INSTALL_PATH" ]]; then
+        rm "$INSTALL_PATH"
+    fi
+    if [[ -e "$INSTALL_PATH" ]]; then
+        echo "Warning: $INSTALL_PATH exists and is not a symlink, skipping PATH install"
+    else
+        ln -s "$REPO_DIR/ccsync" "$INSTALL_PATH" 2>/dev/null || {
+            echo "Note: Could not create symlink at $INSTALL_PATH (may need sudo)"
+            echo "You can run: sudo ln -s $REPO_DIR/ccsync $INSTALL_PATH"
+        }
+    fi
+
+    # Ensure .claude directory exists
+    mkdir -p "$CLAUDE_DIR"
+
+    # Sync each file/directory in the repo
+    for item in "$REPO_DIR"/*; do
+        local name="$(basename "$item")"
+        should_skip "$name" && continue
+
+        local target="$CLAUDE_DIR/$name"
+
+        if [[ -d "$item" ]]; then
+            # It's a directory - sync individual files within it
+            mkdir -p "$target"
+            for subitem in "$item"/*; do
+                [[ -e "$subitem" ]] || continue
+                local subname="$(basename "$subitem")"
+                local subtarget="$target/$subname"
+
+                if [[ -L "$subtarget" ]]; then
+                    rm "$subtarget"
+                elif [[ -e "$subtarget" ]]; then
+                    echo "Backing up $subtarget -> $subtarget.bak"
+                    mv "$subtarget" "$subtarget.bak"
+                fi
+
+                ln -s "$subitem" "$subtarget"
+                echo "Linked: $subtarget -> $subitem"
+            done
+        else
+            # It's a file
+            if [[ -L "$target" ]]; then
+                rm "$target"
+            elif [[ -e "$target" ]]; then
+                echo "Backing up $target -> $target.bak"
+                mv "$target" "$target.bak"
+            fi
+
+            ln -s "$item" "$target"
+            echo "Linked: $target -> $item"
+        fi
+    done
+
+    echo "Install complete!"
+}
+
+cmd_update() {
+    echo "Updating from git..."
+    cd "$REPO_DIR"
+    git pull
+    echo ""
+    cmd_install
+}
+
+cmd_push() {
+    local msg="${1:-Update Claude Code config}"
+    cd "$REPO_DIR"
+    git add -A
+    if git diff --cached --quiet; then
+        echo "No changes to commit"
+    else
+        git commit -m "$msg"
+        git push
+        echo "Pushed changes to remote"
+    fi
+}
+
+cmd_status() {
+    echo "=== Git Status ==="
+    cd "$REPO_DIR"
+    git status --short
+    echo ""
+    echo "=== Linked Files ==="
+    for item in "$REPO_DIR"/*; do
+        local name="$(basename "$item")"
+        should_skip "$name" && continue
+
+        local target="$CLAUDE_DIR/$name"
+
+        if [[ -d "$item" ]]; then
+            for subitem in "$item"/*; do
+                [[ -e "$subitem" ]] || continue
+                local subname="$(basename "$subitem")"
+                local subtarget="$target/$subname"
+
+                if [[ -L "$subtarget" ]]; then
+                    echo "  [linked] $subtarget"
+                elif [[ -e "$subtarget" ]]; then
+                    echo "  [exists] $subtarget (not linked)"
+                else
+                    echo "  [missing] $subtarget"
+                fi
+            done
+        else
+            if [[ -L "$target" ]]; then
+                echo "  [linked] $target"
+            elif [[ -e "$target" ]]; then
+                echo "  [exists] $target (not linked)"
+            else
+                echo "  [missing] $target"
+            fi
+        fi
+    done
+}
+
+cmd_add() {
+    local src="$1"
+    if [[ -z "$src" ]]; then
+        echo "Usage: ccsync add <path>"
+        echo "  <path> can be relative to ~/.claude/ or an absolute path"
+        exit 1
+    fi
+
+    # Normalize the path
+    if [[ "$src" != /* ]]; then
+        src="$CLAUDE_DIR/$src"
+    fi
+
+    if [[ ! -e "$src" ]]; then
+        echo "Error: $src does not exist"
+        exit 1
+    fi
+
+    # Calculate relative path from CLAUDE_DIR
+    local rel_path="${src#$CLAUDE_DIR/}"
+    local dest="$REPO_DIR/$rel_path"
+    local dest_dir="$(dirname "$dest")"
+
+    # Create destination directory if needed
+    mkdir -p "$dest_dir"
+
+    # Copy the file/directory
+    if [[ -d "$src" ]]; then
+        cp -r "$src" "$dest"
+    else
+        cp "$src" "$dest"
+    fi
+
+    echo "Copied: $src -> $dest"
+
+    # Replace original with symlink
+    rm -rf "$src"
+    ln -s "$dest" "$src"
+    echo "Linked: $src -> $dest"
+    echo ""
+    echo "Don't forget to commit: ccsync push \"Add $rel_path\""
+}
+
+cmd_help() {
+    echo "ccsync - Claude Code Config Sync Utility"
+    echo ""
+    echo "Usage: ccsync <command> [args]"
+    echo ""
+    echo "Commands:"
+    echo "  install     Symlink repo files into ~/.claude/"
+    echo "  update      Pull from git and reinstall"
+    echo "  push [msg]  Commit all changes and push (default msg: 'Update Claude Code config')"
+    echo "  status      Show git status and linked files"
+    echo "  add <path>  Add a file from ~/.claude/ to the repo"
+    echo "  help        Show this help message"
+    echo ""
+    echo "Repo: $REPO_DIR"
+}
+
+case "${1:-}" in
+    install) cmd_install ;;
+    update) cmd_update ;;
+    push) cmd_push "${2:-}" ;;
+    status) cmd_status ;;
+    add) cmd_add "$2" ;;
+    help|--help|-h) cmd_help ;;
+    *) cmd_help ;;
+esac
