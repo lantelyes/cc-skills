@@ -5,7 +5,8 @@ set -e
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
-INSTALL_PATH="/usr/local/bin/ccsync"
+BIN_DIR="$HOME/.local/bin"
+INSTALL_PATH="$BIN_DIR/ccsync"
 
 # Files/dirs to skip when syncing
 SKIP_PATTERNS=("ccsync" "README.md" "README" ".git" ".gitignore" "LICENSE")
@@ -21,17 +22,23 @@ should_skip() {
 cmd_install() {
     echo "Installing ccsync..."
 
-    # Add ccsync to PATH
+    # Add ccsync to PATH via ~/.local/bin
+    mkdir -p "$BIN_DIR"
     if [[ -L "$INSTALL_PATH" ]]; then
         rm "$INSTALL_PATH"
     fi
     if [[ -e "$INSTALL_PATH" ]]; then
         echo "Warning: $INSTALL_PATH exists and is not a symlink, skipping PATH install"
     else
-        ln -s "$REPO_DIR/ccsync" "$INSTALL_PATH" 2>/dev/null || {
-            echo "Note: Could not create symlink at $INSTALL_PATH (may need sudo)"
-            echo "You can run: sudo ln -s $REPO_DIR/ccsync $INSTALL_PATH"
-        }
+        ln -s "$REPO_DIR/ccsync" "$INSTALL_PATH"
+        echo "Linked: $INSTALL_PATH -> $REPO_DIR/ccsync"
+
+        # Check if ~/.local/bin is in PATH
+        if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
+            echo ""
+            echo "Note: Add ~/.local/bin to your PATH by adding this to your shell config:"
+            echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
+        fi
     fi
 
     # Ensure .claude directory exists
