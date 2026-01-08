@@ -1,6 +1,6 @@
 # Auto-Detection: Finding Affected Resolvers
 
-When user doesn't specify resolvers, trace the dependency chain from changed files to GraphQL resolvers.
+When user doesn't specify resolvers, use keyword matching to find likely candidates.
 
 ## Step 1: Get valid resolver names from Datadog (REQUIRED FIRST)
 
@@ -10,58 +10,32 @@ When user doesn't specify resolvers, trace the dependency chain from changed fil
 ~/.claude/skills/measuring-pr-performance-impact/scripts/list_resolvers.sh
 ```
 
-This returns the ONLY valid resolver names that exist in Datadog metrics.
+This returns the ONLY valid resolver names that exist in Datadog metrics. Save this list - you'll match against it in Step 2.
 
-**IMPORTANT:**
-- Do NOT guess resolver names from code - they won't match Datadog metrics
-- Do NOT skip this step
-- Save this list and cross-reference it in later steps
+**IMPORTANT:** Do NOT guess resolver names from code - they won't match Datadog metrics.
 
-## Step 2: Trace dependency chain
+## Step 2: Extract keywords and match resolvers
 
-Changed files often affect resolvers **indirectly** through intermediate layers:
+Extract keywords from changed file paths:
+1. Split paths on `/` and `_`
+2. Remove common words: `app`, `models`, `core`, `tests`, `test`, `py`, `graphql`
+3. Keep meaningful terms (e.g., `price`, `history`, `portfolio`, `performance`)
 
-```
-Changed file (app/models/, app/core/)
-    ↓ imported by
-Intermediate modules (app/core/*, app/services/*)
-    ↓ imported by
-GraphQL schemas (app/graphql/*/schema.py)
-    ↓ defines
-Resolver names (lowercase, no underscores)
-```
+Match keywords against resolver list:
+- A resolver is a candidate if it **contains** any keyword
+- Example: keyword `history` matches `pricehistory`, `performancehistory`
 
-**Example for `app/models/price_history.py`:**
+**Examples:**
 
-1. Find what imports price_history in app/core:
-   ```bash
-   grep -r "from app\.models\.price_history\|from app\.models import.*price_history\|import.*price_history" app/core/ --include="*.py" -l
-   ```
+| Changed file | Keywords | Matching resolvers |
+|--------------|----------|-------------------|
+| `app/models/price_history.py` | `price`, `history` | `pricehistory`, `performancehistory` |
+| `app/core/portfolio/metrics.py` | `portfolio`, `metrics` | `portfolio` |
+| `app/graphql/account/schema.py` | `account`, `schema` | `account` |
 
-2. For each result (e.g., `app/core/performance/`), find what GraphQL schemas import from it:
-   ```bash
-   grep -r "from app\.core\.performance\|import.*app\.core\.performance" app/graphql/ --include="*.py" -l
-   ```
+## Step 3: Confirm with user
 
-3. Look at those schema files for resolver definitions (look for `@tracer.wrap(resource="resolver_*")` or field names)
-
-## Step 3: Map schema files to resolver names
-
-In this codebase, resolvers are defined in `schema.py` files, not separate folders. Look for:
-- `@tracer.wrap(resource="resolver_<name>")` decorators
-- Field names like `performance_history` → resolver is `performancehistory`
-- The folder name often hints at resolvers: `app/graphql/portfolio/` → likely `portfolio` resolver
-
-## Step 4: Cross-reference with Datadog
-
-Only use resolver names that exist in the list from Step 1. Common resolvers:
-- `portfolio` - Portfolio summary
-- `performancehistory` - Performance history data
-- `pricehistory` - Price history lookups
-
-## Step 5: Confirm with user
-
-Use the `AskUserQuestion` tool with multi-select:
+Use `AskUserQuestion` with multi-select to confirm:
 
 ```json
 {
@@ -70,14 +44,26 @@ Use the `AskUserQuestion` tool with multi-select:
     "header": "Resolvers",
     "multiSelect": true,
     "options": [
-      {"label": "performancehistory", "description": "Uses price history module"},
-      {"label": "portfolio", "description": "Imports from app.core.performance"}
+      {"label": "performancehistory", "description": "Matches keywords: price, history"},
+      {"label": "pricehistory", "description": "Matches keywords: price, history"}
     ]
   }]
 }
 ```
 
-**IMPORTANT:**
-- Each option MUST be a specific resolver name (e.g., `performancehistory`, `portfolio`)
-- Do NOT add meta-options like "All resolvers", "All of the above", "None", etc.
-- Max 4 options (most likely affected resolvers first)
+**Rules:**
+- Each option MUST be a specific resolver name from Step 1
+- Do NOT add meta-options like "All resolvers" or "None"
+- Max 4 options (most likely candidates first)
+- Include which keywords matched in the description
+
+## Optional: Import tracing for additional context
+
+If keyword matching gives too many candidates, trace imports to narrow down:
+
+```bash
+# Find what imports the changed file
+grep -r "from app\.models\.price_history\|import.*price_history" app/ --include="*.py" -l
+```
+
+This helps identify which parts of the codebase actually use the changed code.
