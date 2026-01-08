@@ -47,7 +47,7 @@ query_metric() {
     --data-urlencode "query=${query}" \
     --data-urlencode "from=${from}" \
     --data-urlencode "to=${to}" | \
-    jq '.series[0].pointlist | map(.[1]) | add / length // 0'
+    jq '((.series // [])[0].pointlist // []) | map(.[1] // 0) | if length > 0 then add / length else 0 end'
 }
 
 # Process each resolver
