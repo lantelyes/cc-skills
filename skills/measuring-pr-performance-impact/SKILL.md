@@ -45,9 +45,12 @@ Scripts are located at: `~/.claude/skills/measuring-pr-performance-impact/script
    - Common values: `24` (1 day), `168` (1 week), `72` (3 days)
    - If PR was recently merged, "after" window will be truncated to now
 
-   Outputs formatted markdown with separate table per resolver.
+   Outputs pre-formatted output with Unicode box drawing and aligned columns.
 
-4. **Print output** - The script outputs formatted markdown directly. Just print it.
+4. **Display output** - CRITICAL: Display the script output EXACTLY as-is in a code block. Do NOT reformat, summarize, or create your own tables. The script output is already beautifully formatted with Unicode box headers and aligned columns. Just wrap it in a code block:
+   ```
+   <paste script output here verbatim>
+   ```
 
 ## Error handling
 - PR not merged: "PR #X has not been merged yet"
