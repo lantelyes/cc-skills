@@ -10,8 +10,8 @@ PR_JSON=$(gh pr view "$PR_NUMBER" --json mergedAt,files,title --repo coin-tracke
 # Extract mergedAt and convert to epoch
 MERGED_AT=$(echo "$PR_JSON" | jq -r '.mergedAt')
 if [[ "$MERGED_AT" == "null" || -z "$MERGED_AT" ]]; then
-  echo "$PR_JSON"
-  exit 0
+  echo "Error: PR #$PR_NUMBER has not been merged yet" >&2
+  exit 1
 fi
 
 # Convert ISO 8601 to epoch (macOS)
