@@ -5,7 +5,16 @@ set -e
 PR_NUMBER="${1:?Usage: get_pr_info.sh <pr_number>}"
 
 # Get PR data
-PR_JSON=$(gh pr view "$PR_NUMBER" --json mergedAt,files,title --repo coin-tracker/coin-tracker-server)
+PR_JSON=$(gh pr view "$PR_NUMBER" --json mergedAt,files,title --repo coin-tracker/coin-tracker-server 2>&1) || {
+  echo "Error: PR #$PR_NUMBER not found or no access" >&2
+  exit 1
+}
+
+# Verify PR exists (has title)
+if ! echo "$PR_JSON" | jq -e '.title' > /dev/null 2>&1; then
+  echo "Error: PR #$PR_NUMBER not found or no access" >&2
+  exit 1
+fi
 
 # Extract mergedAt and convert to epoch
 MERGED_AT=$(echo "$PR_JSON" | jq -r '.mergedAt')

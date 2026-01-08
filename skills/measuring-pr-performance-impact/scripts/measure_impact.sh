@@ -69,6 +69,18 @@ read_val() { cat "/tmp/${1}_${2}_${3}" 2>/dev/null || echo "0"; }
 ACTUAL_AFTER_SECS=$((AFTER_END - AFTER_START))
 ACTUAL_AFTER_HOURS=$((ACTUAL_AFTER_SECS / 3600))
 
+# Warn if after window is less than 24 hours
+if [[ $ACTUAL_AFTER_HOURS -lt 24 ]]; then
+  echo "Warning: Only ${ACTUAL_AFTER_HOURS}h of post-merge data available (< 24h may not be representative)" >&2
+fi
+
+# Warn if any resolver has no data
+for resolver in "${RESOLVER_ARRAY[@]}"; do
+  if [[ $(read_val "$resolver" before avg) == "0" && $(read_val "$resolver" before count) == "0" ]]; then
+    echo "Warning: No data found for resolver '$resolver'" >&2
+  fi
+done
+
 # Output JSON array
 echo "["
 first=true
