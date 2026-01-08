@@ -11,6 +11,30 @@ DASHBOARD_ID="52w-7p4-q8a"
 TMPDIR=$(mktemp -d)
 trap "rm -rf $TMPDIR" EXIT
 
+# Format hours into human-readable duration
+fmt_duration() {
+  local hours=$1
+  if (( hours >= 168 )); then
+    local weeks=$((hours / 168))
+    local remaining=$((hours % 168))
+    if (( remaining == 0 )); then
+      echo "${weeks}w"
+    else
+      echo "${weeks}w ${remaining}h"
+    fi
+  elif (( hours >= 24 )); then
+    local days=$((hours / 24))
+    local remaining=$((hours % 24))
+    if (( remaining == 0 )); then
+      echo "${days}d"
+    else
+      echo "${days}d ${remaining}h"
+    fi
+  else
+    echo "${hours}h"
+  fi
+}
+
 # Load credentials (env vars take priority, fallback to ~/.dogrc)
 if [[ -n "$DD_API_KEY" && -n "$DD_APP_KEY" ]]; then
   DD_apikey="$DD_API_KEY"
@@ -157,7 +181,7 @@ print_sep() {
 }
 
 # Output markdown
-echo "**Window:** ${WINDOW_HOURS}h before / ${ACTUAL_AFTER_HOURS}h after merge"
+echo "**Window:** $(fmt_duration $WINDOW_HOURS) before / $(fmt_duration $ACTUAL_AFTER_HOURS) after merge"
 echo ""
 
 # Output for each resolver
