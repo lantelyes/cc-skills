@@ -1,6 +1,6 @@
 ---
 description: Measure how a PR affected GraphQL resolver latency in production.
-allowed-tools: Read, Bash(gh:*), Bash(curl:*), Bash(grep:*), Bash(python3:*)
+allowed-tools: Read, Bash(*)
 argument-hint: --pr <number> [--resolver <name>] [--window <hours>]
 ---
 
