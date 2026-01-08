@@ -1,8 +1,6 @@
 # Output Format
 
-Use markdown tables with **bold** for changes >10%.
-
-## Single resolver
+Tables only. No verbose analysis. Bold changes >20%.
 
 ```markdown
 # Performance Impact: PR #27416
@@ -11,31 +9,34 @@ Use markdown tables with **bold** for changes >10%.
 **Merged:** <timestamp>
 **Window:** <hours_before>h before / <hours_after>h after merge
 
-## <resolver_name>
+## performancehistory
 
-| Metric | Pre-PR | Post-PR | Impact |
-|--------|--------|---------|--------|
-| avg latency | 555.2ms | 407.1ms | **-26.7%** |
-| p50 latency | 338.0ms | 289.0ms | -14.5% |
-| p90 latency | 812.0ms | 520.0ms | **-36.0%** |
-| p99 latency | 990.0ms | 596.0ms | **-39.8%** |
-| request count | 1.2M | 1.1M | |
-| error count | 0 | 0 | N/A |
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| avg | 543ms | 253ms | **-53%** |
+| p50 | 338ms | 289ms | -14% |
+| p90 | 812ms | 520ms | **-36%** |
+| p99 | 990ms | 596ms | **-40%** |
+| requests | 135K | 82K | |
+| errors | 0 | 0 | |
 
-**Verdict:** PR improved avg by 27%, p99 by 40%
-```
+## portfolio
 
-## Multiple resolvers
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| avg | 80ms | 236ms | +194% |
+| p50 | 140ms | 148ms | +6% |
+| p90 | 160ms | 155ms | -3% |
+| p99 | 527ms | 442ms | -16% |
+| requests | 101K | 88K | |
+| errors | 0 | 0 | |
 
-Add summary table at end:
-
-```markdown
 ## Summary
 
-| Resolver | Avg Impact | p99 Impact | Verdict |
-|----------|------------|------------|---------|
-| performancehistory | **-26.7%** | **-39.8%** | Improved |
-| portfolio | -8.1% | -6.7% | No change |
+| Resolver | Avg | p99 | Verdict |
+|----------|-----|-----|---------|
+| performancehistory | **-53%** | **-40%** | Improved |
+| portfolio | +194% | -16% | Mixed |
 
 [Dashboard](https://app.datadoghq.com/dashboard/52w-7p4-q8a)
 ```
