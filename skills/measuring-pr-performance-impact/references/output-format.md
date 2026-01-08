@@ -9,7 +9,7 @@ Use markdown tables with **bold** for changes >10%.
 
 **PR Title:** <title>
 **Merged:** <timestamp>
-**Window:** 24h pre-merge / 24h post-merge
+**Window:** <hours_before>h before / <hours_after>h after merge
 
 ## <resolver_name>
 

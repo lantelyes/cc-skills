@@ -33,7 +33,13 @@ Scripts are located at: `~/.claude/skills/measuring-pr-performance-impact/script
    ```bash
    ~/.claude/skills/measuring-pr-performance-impact/scripts/measure_impact.sh <resolver[,resolver2,...]> <merged_epoch> [window_hours]
    ```
-   Outputs JSON array with before/after metrics for each resolver.
+
+   **Window parameter:**
+   - Default: `24` (24 hours before and after merge)
+   - Common values: `24` (1 day), `168` (1 week), `72` (3 days)
+   - If PR was recently merged, "after" window will be truncated to now
+
+   Outputs JSON array with `window.hours_before` and `window.hours_after` for each resolver.
 
 4. **Format output** - See [references/output-format.md](references/output-format.md)
 

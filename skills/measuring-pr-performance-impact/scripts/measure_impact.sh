@@ -65,6 +65,10 @@ wait
 # Read results helper
 read_val() { cat "/tmp/${1}_${2}_${3}" 2>/dev/null || echo "0"; }
 
+# Calculate actual after hours (may be less if PR was recently merged)
+ACTUAL_AFTER_SECS=$((AFTER_END - AFTER_START))
+ACTUAL_AFTER_HOURS=$((ACTUAL_AFTER_SECS / 3600))
+
 # Output JSON array
 echo "["
 first=true
@@ -73,6 +77,10 @@ for resolver in "${RESOLVER_ARRAY[@]}"; do
   cat << EOF
   {
     "resolver": "$resolver",
+    "window": {
+      "hours_before": $WINDOW_HOURS,
+      "hours_after": $ACTUAL_AFTER_HOURS
+    },
     "before": {
       "avg": $(read_val "$resolver" before avg),
       "p50": $(read_val "$resolver" before p50),
