@@ -124,17 +124,31 @@ calc_change_raw() {
   echo "scale=4; (($after - $before) / $before) * 100" | bc -l
 }
 
-# Format change with arrow
+# Format change with arrow (for table cell, right-aligned in 9 chars)
 fmt_change() {
   local pct=$1
   local abs_pct=$(echo "$pct" | tr -d '-')
   local arrow="↓"
   if (( $(echo "$pct > 0" | bc -l) )); then
     arrow="↑"
-  elif (( $(echo "$pct == 0" | bc -l) )); then
-    arrow="→"
   fi
-  printf "%s %.0f%%" "$arrow" "$abs_pct"
+  # Handle zero case - just show 0%
+  if (( $(echo "$abs_pct < 0.5" | bc -l) )); then
+    printf "0%%"
+  else
+    printf "%s %.0f%%" "$arrow" "$abs_pct"
+  fi
+}
+
+# Print a data row
+print_row() {
+  local metric=$1 before=$2 after=$3 change=$4
+  printf "║ %-10s │ %8s │ %8s │ %9s ║\n" "$metric" "$before" "$after" "$change"
+}
+
+# Print row separator
+print_sep() {
+  echo "╟────────────┼──────────┼──────────┼───────────╢"
 }
 
 # Output markdown
@@ -180,32 +194,33 @@ for resolver in "${RESOLVER_ARRAY[@]}"; do
     after_err_rate="0"
   fi
   chg_err_rate=$(calc_change_raw $before_err_rate $after_err_rate)
+  chg_count=$(calc_change_raw $before_count $after_count)
 
   # Resolver name in uppercase
   resolver_upper=$(echo "$resolver" | tr '[:lower:]' '[:upper:]')
 
-  # Box header
-  echo "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
-  printf "┃  %-56s┃\n" "$resolver_upper"
-  echo "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
-  echo ""
+  # Table header
+  echo "╔══════════════════════════════════════════════╗"
+  printf "║ %-44s ║\n" "$resolver_upper"
+  echo "╠════════════╤══════════╤══════════╤═══════════╣"
+  printf "║ %-10s │ %8s │ %8s │ %9s ║\n" "Metric" "Before" "After" "Change"
+  echo "╠════════════╪══════════╪══════════╪═══════════╣"
 
-  # Latency metrics with arrows
-  printf "   avg  %7s  →  %-7s    %s\n" "$(fmt_ms $before_avg)" "$(fmt_ms $after_avg)" "$(fmt_change $chg_avg)"
-  printf "   p50  %7s  →  %-7s    %s\n" "$(fmt_ms $before_p50)" "$(fmt_ms $after_p50)" "$(fmt_change $chg_p50)"
-  printf "   p90  %7s  →  %-7s    %s\n" "$(fmt_ms $before_p90)" "$(fmt_ms $after_p90)" "$(fmt_change $chg_p90)"
-  printf "   p99  %7s  →  %-7s    %s\n" "$(fmt_ms $before_p99)" "$(fmt_ms $after_p99)" "$(fmt_change $chg_p99)"
-  echo ""
+  # Data rows
+  print_row "Average" "$(fmt_ms $before_avg)" "$(fmt_ms $after_avg)" "$(fmt_change $chg_avg)"
+  print_sep
+  print_row "P50" "$(fmt_ms $before_p50)" "$(fmt_ms $after_p50)" "$(fmt_change $chg_p50)"
+  print_sep
+  print_row "P90" "$(fmt_ms $before_p90)" "$(fmt_ms $after_p90)" "$(fmt_change $chg_p90)"
+  print_sep
+  print_row "P99" "$(fmt_ms $before_p99)" "$(fmt_ms $after_p99)" "$(fmt_change $chg_p99)"
+  print_sep
+  print_row "Requests" "$(fmt_count $before_count)" "$(fmt_count $after_count)" "$(fmt_change $chg_count)"
+  print_sep
+  print_row "Error Rate" "$(fmt_pct $before_err_rate)" "$(fmt_pct $after_err_rate)" "$(fmt_change $chg_err_rate)"
 
-  # Volume and error rate line
-  err_rate_display="$(fmt_pct $after_err_rate)  $(fmt_change $chg_err_rate)"
-  # Show checkmark if error rate is 0 and unchanged
-  if (( $(echo "$after_err_rate == 0 && $before_err_rate == 0" | bc -l) )); then
-    err_rate_display="0.00%  ✓"
-  fi
-  printf "   reqs  %s → %s     error rate  %s\n" \
-    "$(fmt_count $before_count)" "$(fmt_count $after_count)" \
-    "$err_rate_display"
+  # Table footer
+  echo "╚════════════╧══════════╧══════════╧═══════════╝"
   echo ""
 done
 
