@@ -68,4 +68,8 @@ Measure how a PR affected GraphQL resolver latency using Datadog metrics.
 
 **Triggers:** "measure PR 27416 performance", "how did PR 27416 affect performance?", "did this PR regress latency?"
 
-Same functionality as the `/benchmark-consumer-resolver` command, but with bundled scripts for deterministic timestamp conversion, Datadog queries, and JSON parsing.
+**Features:**
+- Auto-detects affected resolvers by tracing dependency chain from changed files
+- Multi-select UI to choose which resolvers to measure
+- Configurable time window (default 24h, supports 1 week, etc.)
+- Bundled scripts for reliable timestamp conversion and Datadog queries
