@@ -103,9 +103,9 @@ read_val() { cat "$TMPDIR/${1}_${2}_${3}" 2>/dev/null || echo "0"; }
 ACTUAL_AFTER_SECS=$((AFTER_END - MERGED_EPOCH))
 ACTUAL_AFTER_HOURS=$((ACTUAL_AFTER_SECS / 3600))
 
-# Warn if after window < 24h
-if [[ $ACTUAL_AFTER_HOURS -lt 24 ]]; then
-  echo "Warning: Only ${ACTUAL_AFTER_HOURS}h of post-merge data available (< 24h may not be representative)" >&2
+# Warn if after window is shorter than before window
+if [[ $ACTUAL_AFTER_HOURS -lt $WINDOW_HOURS ]]; then
+  echo "Warning: Only $(fmt_duration $ACTUAL_AFTER_HOURS) of post-merge data available (requested $(fmt_duration $WINDOW_HOURS))" >&2
 fi
 
 # Format milliseconds (converts to seconds if >= 1000ms)
