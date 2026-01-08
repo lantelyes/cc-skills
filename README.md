@@ -1,8 +1,10 @@
 # Claude Code Skills
 
-A collection of custom skills for [Claude Code](https://claude.com/claude-code).
+A collection of custom commands and skills for [Claude Code](https://claude.com/claude-code).
 
 ## Installation
+
+### Commands (slash commands)
 
 Symlink the `commands/` folder to your Claude Code commands directory:
 
@@ -10,7 +12,15 @@ Symlink the `commands/` folder to your Claude Code commands directory:
 ln -s /path/to/cc-skills/commands ~/.claude/commands
 ```
 
-This gives you all skills at once, and `git pull` automatically updates them.
+### Skills (auto-triggered)
+
+Symlink the `skills/` folder to your Claude skills directory:
+
+```bash
+ln -s /path/to/cc-skills/skills ~/.claude/skills
+```
+
+This gives you all commands and skills at once, and `git pull` automatically updates them.
 
 ## Requirements
 
@@ -47,3 +57,15 @@ Measure how a PR affected GraphQL resolver latency and errors in production.
 - Auto-detect: `/benchmark-consumer-resolver --pr 27416`
 
 Queries Datadog for resolver metrics (avg, p50, p90, p99, request count, error count) before and after a PR merge. Outputs a comparison table per resolver showing performance impact with a verdict line. When multiple resolvers are analyzed, includes a summary table.
+
+## Available Skills
+
+Skills are auto-triggered based on your request. They include bundled scripts for more reliable execution.
+
+### benchmarking-resolver-performance
+
+Measure PR impact on GraphQL resolver latency using Datadog metrics.
+
+**Triggers:** "benchmark PR 27416", "how did PR 27416 affect performance?", "did this PR regress latency?"
+
+Same functionality as the `/benchmark-consumer-resolver` command, but with bundled scripts for deterministic timestamp conversion, Datadog queries, and JSON parsing.
