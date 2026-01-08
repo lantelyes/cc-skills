@@ -124,7 +124,7 @@ calc_change_raw() {
   echo "scale=4; (($after - $before) / $before) * 100" | bc -l
 }
 
-# Format change with arrow (for table cell, right-aligned in 9 chars)
+# Format change with arrow (returns fixed 9-char display width string)
 fmt_change() {
   local pct=$1
   local abs_pct=$(echo "$pct" | tr -d '-')
@@ -134,16 +134,20 @@ fmt_change() {
   fi
   # Handle zero case - just show 0%
   if (( $(echo "$abs_pct < 0.5" | bc -l) )); then
-    printf "0%%"
+    printf "%9s" "0%"
   else
-    printf "%s %.0f%%" "$arrow" "$abs_pct"
+    # Arrow is 1 display char but 3 bytes, so we need to pad manually
+    local num=$(printf "%.0f%%" "$abs_pct")
+    local display_len=$((1 + 1 + ${#num}))  # arrow + space + number
+    local padding=$((9 - display_len))
+    printf "%*s%s %s" "$padding" "" "$arrow" "$num"
   fi
 }
 
-# Print a data row
+# Print a data row (change column uses pre-padded string)
 print_row() {
   local metric=$1 before=$2 after=$3 change=$4
-  printf "║ %-10s │ %8s │ %8s │ %9s ║\n" "$metric" "$before" "$after" "$change"
+  printf "║ %-10s │ %8s │ %8s │ %s ║\n" "$metric" "$before" "$after" "$change"
 }
 
 # Print row separator
