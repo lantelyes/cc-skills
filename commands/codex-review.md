@@ -1,59 +1,58 @@
 ---
-description: "Run OpenAI Codex CLI review against a base branch, verify findings, and summarize results"
+description: Run OpenAI Codex CLI review against a base branch, verify findings, and summarize results
+allowed-tools: Read, Glob, Grep, Bash(git:*), Bash(codex:*)
+argument-hint: [base-branch]
 ---
 
-# Codex Review, Verify & Summarize
+# Codex Review
 
-Run the OpenAI Codex CLI to review the current branch against a base branch, then verify each finding and provide a summary.
+Review current branch against a base branch using OpenAI Codex CLI, verify each finding, and summarize.
 
-## Arguments
+## Context
 
-- Base branch: $ARGUMENTS (if not provided, auto-detect by checking for "main" or "master")
+- **Current branch:** !`git branch --show-current`
+- **Default branch:** !`git symbolic-ref refs/remotes/origin/HEAD --short 2>/dev/null | sed 's|origin/||' || echo main`
 
-## Steps
+## Run Review
 
-1. **Run Codex Review**
-   - If no base branch argument provided, detect the default branch:
-     - Run `git branch -l main master --format='%(refname:short)'` to see which exists
-     - Prefer "main" if both exist
-   - Execute `codex review --base <branch>` against the determined base branch
-   - Capture the full output including all findings
+```bash
+codex review --base ${ARGUMENTS:-<default-branch-from-above>}
+```
 
-2. **For Each Finding, Verify**
-   - Read the relevant code sections mentioned in the finding
-   - Trace the data flow to understand if the issue is reachable
-   - Check if there are existing safeguards (validation, type constraints, etc.)
-   - Determine the actual severity: Critical, High, Medium, Low, or False Positive
+## Verify Each Finding
 
-3. **Provide Summary Report**
-   Format the results as:
+For each finding from Codex:
+1. Read the relevant code
+2. Trace data flow to check if the issue is reachable
+3. Check for existing safeguards (validation, types, etc.)
+4. Assign severity: **Critical**, **High**, **Medium**, **Low**, or **False Positive**
 
-   ```
-   ## Codex Review Summary
+## Output Format
 
-   **Branch:** <current-branch>
-   **Base:** <base-branch>
-   **Findings:** <count>
+```
+## Codex Review: <current-branch> → <base-branch>
 
-   ### Verified Findings
+| # | Finding | File | Severity | Verdict |
+|---|---------|------|----------|---------|
+| 1 | Brief title | path:lines | High | Valid |
+| 2 | Brief title | path:lines | Low | False Positive |
 
-   For each finding:
-   - **[Severity] Title** (file:lines)
-     - Codex said: <brief summary>
-     - Verification: <your analysis>
-     - Recommendation: <actionable next step>
+### Finding 1: <title>
+**Codex:** <what codex reported>
+**Analysis:** <your verification>
+**Action:** <recommendation>
 
-   ### False Positives / Low Risk
+### Finding 2: ...
 
-   List any findings that were determined to be false positives or acceptably low risk after verification, with reasoning.
+---
 
-   ### Overall Assessment
+**Verdict:** Safe to merge / X blocking issues require attention
+```
 
-   Brief summary of whether the PR is safe to merge and any blocking issues.
-   ```
+## Severity Guide
 
-## Notes
-
-- Focus verification on security issues, correctness bugs, and performance regressions
-- For security findings, trace the data flow from user input to the vulnerable code
-- Consider the context of the codebase (internal APIs vs public endpoints, etc.)
+- **Critical**: Security vulnerability, data loss risk
+- **High**: Correctness bug affecting users
+- **Medium**: Edge case bug, performance issue
+- **Low**: Code smell, minor issue
+- **False Positive**: Not actually a problem
