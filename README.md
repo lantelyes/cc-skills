@@ -39,6 +39,11 @@ Runs `codex review --base <branch>`, then manually verifies each finding by exam
 
 Measure how a PR affected GraphQL resolver latency and errors in production.
 
-**Usage:** `/benchmark-consumer-resolver --pr <number> [--resolver <name>] [--window <hours>]`
+**Usage:** `/benchmark-consumer-resolver --pr <number> [--resolver <name>[,<name>...]] [--window <hours>]`
 
-Queries Datadog for resolver metrics (avg, p50, p90, p99, request count, error count) before and after a PR merge. Outputs a comparison table showing performance impact with a verdict line summarizing improvements or regressions.
+**Examples:**
+- Single resolver: `/benchmark-consumer-resolver --pr 27416 --resolver performancehistory`
+- Multiple resolvers: `/benchmark-consumer-resolver --pr 27416 --resolver performancehistory,portfolio`
+- Auto-detect: `/benchmark-consumer-resolver --pr 27416`
+
+Queries Datadog for resolver metrics (avg, p50, p90, p99, request count, error count) before and after a PR merge. Outputs a comparison table per resolver showing performance impact with a verdict line. When multiple resolvers are analyzed, includes a summary table.
