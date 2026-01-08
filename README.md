@@ -27,7 +27,7 @@ This gives you all commands and skills at once, and `git pull` automatically upd
 ### codex-review
 - [OpenAI Codex CLI](https://github.com/openai/codex) installed and configured
 
-### benchmark-consumer-resolver
+### benchmark-consumer-resolver / measuring-pr-performance-impact
 - `gh` CLI authenticated (`gh auth login`)
 - `~/.dogrc` with Datadog credentials:
   ```
@@ -35,7 +35,7 @@ This gives you all commands and skills at once, and `git pull` automatically upd
   appkey = your_app_key
   ```
 
-## Available Skills
+## Available Commands
 
 ### codex-review
 
@@ -56,16 +56,16 @@ Measure how a PR affected GraphQL resolver latency and errors in production.
 - Multiple resolvers: `/benchmark-consumer-resolver --pr 27416 --resolver performancehistory,portfolio`
 - Auto-detect: `/benchmark-consumer-resolver --pr 27416`
 
-Queries Datadog for resolver metrics (avg, p50, p90, p99, request count, error count) before and after a PR merge. Outputs a comparison table per resolver showing performance impact with a verdict line. When multiple resolvers are analyzed, includes a summary table.
+Queries Datadog for resolver metrics (avg, p50, p90, p99, request count, error count) before and after a PR merge. Outputs a comparison table per resolver showing performance impact with a verdict line.
 
 ## Available Skills
 
 Skills are auto-triggered based on your request. They include bundled scripts for more reliable execution.
 
-### benchmarking-resolver-performance
+### measuring-pr-performance-impact
 
-Measure PR impact on GraphQL resolver latency using Datadog metrics.
+Measure how a PR affected GraphQL resolver latency using Datadog metrics.
 
-**Triggers:** "benchmark PR 27416", "how did PR 27416 affect performance?", "did this PR regress latency?"
+**Triggers:** "measure PR 27416 performance", "how did PR 27416 affect performance?", "did this PR regress latency?"
 
 Same functionality as the `/benchmark-consumer-resolver` command, but with bundled scripts for deterministic timestamp conversion, Datadog queries, and JSON parsing.
