@@ -34,7 +34,8 @@ query_metric() {
   local query
   case "$metric" in
     avg|p50|p90|p99)
-      query="${metric}:ct.consumer.graphql.latency.ms.distribution{resolver:${resolver}} by {query}"
+      # No 'by {query}' - aggregate across all queries using this resolver
+      query="${metric}:ct.consumer.graphql.latency.ms.distribution{resolver:${resolver}}"
       ;;
     count)
       query="sum:ct.consumer.graphql.latency.ms.distribution{resolver:${resolver}}.as_count()"
