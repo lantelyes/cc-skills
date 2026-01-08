@@ -27,7 +27,7 @@ This gives you all commands and skills at once, and `git pull` automatically upd
 ### codex-review
 - [OpenAI Codex CLI](https://github.com/openai/codex) installed and configured
 
-### benchmark-consumer-resolver / measuring-pr-performance-impact
+### measuring-pr-performance-impact
 - `gh` CLI authenticated (`gh auth login`)
 - `~/.dogrc` with Datadog credentials:
   ```
@@ -44,19 +44,6 @@ Run OpenAI Codex CLI review against a base branch, verify findings, and summariz
 **Usage:** `/codex-review` or `/codex-review main`
 
 Runs `codex review --base <branch>`, then manually verifies each finding by examining code and tracing data flow. Produces a structured summary with severity levels (Critical, High, Medium, Low, False Positive).
-
-### benchmark-consumer-resolver
-
-Measure how a PR affected GraphQL resolver latency and errors in production.
-
-**Usage:** `/benchmark-consumer-resolver --pr <number> [--resolver <name>[,<name>...]] [--window <hours>]`
-
-**Examples:**
-- Single resolver: `/benchmark-consumer-resolver --pr 27416 --resolver performancehistory`
-- Multiple resolvers: `/benchmark-consumer-resolver --pr 27416 --resolver performancehistory,portfolio`
-- Auto-detect: `/benchmark-consumer-resolver --pr 27416`
-
-Queries Datadog for resolver metrics (avg, p50, p90, p99, request count, error rate) before and after a PR merge. Outputs a formatted Unicode table per resolver showing before/after comparison with change percentages.
 
 ## Available Skills
 
