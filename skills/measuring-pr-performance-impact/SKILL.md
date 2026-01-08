@@ -93,7 +93,25 @@ Only use resolver names that exist in the list from Step 1. Common resolvers:
 - `pricehistory` - Price history lookups
 
 ### Step 5: Confirm with user
-Before measuring, confirm: "Based on the changed files, these resolvers may be affected: [list]. Should I measure all of them?"
+
+Use the `AskUserQuestion` tool with multi-select to let the user choose resolvers:
+
+```json
+{
+  "questions": [{
+    "question": "Which resolvers do you want to measure?",
+    "header": "Resolvers",
+    "multiSelect": true,
+    "options": [
+      {"label": "<resolver1>", "description": "<why it may be affected>"},
+      {"label": "<resolver2>", "description": "<why it may be affected>"}
+    ]
+  }]
+}
+```
+
+- List up to 4 detected resolvers, most likely affected first
+- User can select multiple or choose "Other" for custom input
 
 ## Error handling
 - PR not merged: "PR #X has not been merged yet"
