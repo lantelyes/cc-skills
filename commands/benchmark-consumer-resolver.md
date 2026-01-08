@@ -51,25 +51,18 @@ If no GraphQL imports found, the change may be in shared utilities. Ask user to 
 
 ## Resolver Name Discovery
 
-Before querying metrics, fetch the list of valid resolver names from Datadog:
+Before querying, verify resolver names exist in Datadog. Run a sample query to see available resolvers:
 
 ```bash
 DD_apikey=$(grep '^apikey' ~/.dogrc | sed 's/apikey *= *//')
 DD_appkey=$(grep '^appkey' ~/.dogrc | sed 's/appkey *= *//')
-curl -s "https://api.datadoghq.com/api/v1/tags/hosts" \
-  -H "DD-API-KEY: ${DD_apikey}" \
-  -H "DD-APPLICATION-KEY: ${DD_appkey}" \
-  -G --data-urlencode "filter=resolver"
+curl -s "https://api.datadoghq.com/api/v1/query" \
+  -H "DD-API-KEY: ${DD_apikey}" -H "DD-APPLICATION-KEY: ${DD_appkey}" -G \
+  --data-urlencode "query=avg:ct.consumer.graphql.latency.ms.distribution{*} by {resolver}" \
+  --data-urlencode "from=$(($(date +%s) - 3600))" --data-urlencode "to=$(date +%s)"
 ```
 
-Or query the metric itself for tag values:
-```bash
-curl -s "https://api.datadoghq.com/api/v2/metrics/ct.consumer.graphql.latency.ms.distribution/tags" \
-  -H "DD-API-KEY: ${DD_apikey}" \
-  -H "DD-APPLICATION-KEY: ${DD_appkey}"
-```
-
-Use ONLY resolver names that appear in Datadog. Do NOT guess or transform names.
+This returns all resolver names with recent data. Use ONLY names from this response.
 
 ## Workflow
 
@@ -88,85 +81,35 @@ If not specified, auto-detect from PR files (may return multiple).
 
 ### Step 3: Query Metrics for Each Resolver
 
-For each resolver in the list, run queries in parallel using resolver-specific temp files (`/tmp/${RESOLVER}_before_avg.json`, etc.):
-
+**Credentials:**
 ```bash
-# Load credentials
 DD_apikey=$(grep '^apikey' ~/.dogrc | sed 's/apikey *= *//')
 DD_appkey=$(grep '^appkey' ~/.dogrc | sed 's/appkey *= *//')
-
-# Calculate timestamps (replace MERGED_EPOCH and WINDOW_HOURS)
-BEFORE_START=$((MERGED_EPOCH - WINDOW_HOURS * 3600))
-BEFORE_END=$MERGED_EPOCH
-AFTER_START=$MERGED_EPOCH
-AFTER_END=$((MERGED_EPOCH + WINDOW_HOURS * 3600))
-NOW=$(date +%s)
-[[ $AFTER_END -gt $NOW ]] && AFTER_END=$NOW
-
-# For each RESOLVER, query all metrics in parallel
-curl -s "https://api.datadoghq.com/api/v1/query" \
-  -H "DD-API-KEY: ${DD_apikey}" -H "DD-APPLICATION-KEY: ${DD_appkey}" -G \
-  --data-urlencode "query=avg:ct.consumer.graphql.latency.ms.distribution{resolver:RESOLVER} by {query}" \
-  --data-urlencode "from=$BEFORE_START" --data-urlencode "to=$BEFORE_END" > /tmp/${RESOLVER}_before_avg.json &
-
-curl -s "https://api.datadoghq.com/api/v1/query" \
-  -H "DD-API-KEY: ${DD_apikey}" -H "DD-APPLICATION-KEY: ${DD_appkey}" -G \
-  --data-urlencode "query=avg:ct.consumer.graphql.latency.ms.distribution{resolver:RESOLVER} by {query}" \
-  --data-urlencode "from=$AFTER_START" --data-urlencode "to=$AFTER_END" > /tmp/${RESOLVER}_after_avg.json &
-
-curl -s "https://api.datadoghq.com/api/v1/query" \
-  -H "DD-API-KEY: ${DD_apikey}" -H "DD-APPLICATION-KEY: ${DD_appkey}" -G \
-  --data-urlencode "query=p99:ct.consumer.graphql.latency.ms.distribution{resolver:RESOLVER} by {query}" \
-  --data-urlencode "from=$BEFORE_START" --data-urlencode "to=$BEFORE_END" > /tmp/${RESOLVER}_before_p99.json &
-
-curl -s "https://api.datadoghq.com/api/v1/query" \
-  -H "DD-API-KEY: ${DD_apikey}" -H "DD-APPLICATION-KEY: ${DD_appkey}" -G \
-  --data-urlencode "query=p99:ct.consumer.graphql.latency.ms.distribution{resolver:RESOLVER} by {query}" \
-  --data-urlencode "from=$AFTER_START" --data-urlencode "to=$AFTER_END" > /tmp/${RESOLVER}_after_p99.json &
-
-curl -s "https://api.datadoghq.com/api/v1/query" \
-  -H "DD-API-KEY: ${DD_apikey}" -H "DD-APPLICATION-KEY: ${DD_appkey}" -G \
-  --data-urlencode "query=p50:ct.consumer.graphql.latency.ms.distribution{resolver:RESOLVER} by {query}" \
-  --data-urlencode "from=$BEFORE_START" --data-urlencode "to=$BEFORE_END" > /tmp/${RESOLVER}_before_p50.json &
-
-curl -s "https://api.datadoghq.com/api/v1/query" \
-  -H "DD-API-KEY: ${DD_apikey}" -H "DD-APPLICATION-KEY: ${DD_appkey}" -G \
-  --data-urlencode "query=p50:ct.consumer.graphql.latency.ms.distribution{resolver:RESOLVER} by {query}" \
-  --data-urlencode "from=$AFTER_START" --data-urlencode "to=$AFTER_END" > /tmp/${RESOLVER}_after_p50.json &
-
-curl -s "https://api.datadoghq.com/api/v1/query" \
-  -H "DD-API-KEY: ${DD_apikey}" -H "DD-APPLICATION-KEY: ${DD_appkey}" -G \
-  --data-urlencode "query=p90:ct.consumer.graphql.latency.ms.distribution{resolver:RESOLVER} by {query}" \
-  --data-urlencode "from=$BEFORE_START" --data-urlencode "to=$BEFORE_END" > /tmp/${RESOLVER}_before_p90.json &
-
-curl -s "https://api.datadoghq.com/api/v1/query" \
-  -H "DD-API-KEY: ${DD_apikey}" -H "DD-APPLICATION-KEY: ${DD_appkey}" -G \
-  --data-urlencode "query=p90:ct.consumer.graphql.latency.ms.distribution{resolver:RESOLVER} by {query}" \
-  --data-urlencode "from=$AFTER_START" --data-urlencode "to=$AFTER_END" > /tmp/${RESOLVER}_after_p90.json &
-
-curl -s "https://api.datadoghq.com/api/v1/query" \
-  -H "DD-API-KEY: ${DD_apikey}" -H "DD-APPLICATION-KEY: ${DD_appkey}" -G \
-  --data-urlencode "query=sum:ct.consumer.graphql.latency.ms.distribution{resolver:RESOLVER} by {query}.as_count()" \
-  --data-urlencode "from=$BEFORE_START" --data-urlencode "to=$BEFORE_END" > /tmp/${RESOLVER}_before_count.json &
-
-curl -s "https://api.datadoghq.com/api/v1/query" \
-  -H "DD-API-KEY: ${DD_apikey}" -H "DD-APPLICATION-KEY: ${DD_appkey}" -G \
-  --data-urlencode "query=sum:ct.consumer.graphql.latency.ms.distribution{resolver:RESOLVER} by {query}.as_count()" \
-  --data-urlencode "from=$AFTER_START" --data-urlencode "to=$AFTER_END" > /tmp/${RESOLVER}_after_count.json &
-
-curl -s "https://api.datadoghq.com/api/v1/query" \
-  -H "DD-API-KEY: ${DD_apikey}" -H "DD-APPLICATION-KEY: ${DD_appkey}" -G \
-  --data-urlencode "query=sum:ct.consumer.graphql.error.count{resolver:RESOLVER}.as_count()" \
-  --data-urlencode "from=$BEFORE_START" --data-urlencode "to=$BEFORE_END" > /tmp/${RESOLVER}_before_errors.json &
-
-curl -s "https://api.datadoghq.com/api/v1/query" \
-  -H "DD-API-KEY: ${DD_apikey}" -H "DD-APPLICATION-KEY: ${DD_appkey}" -G \
-  --data-urlencode "query=sum:ct.consumer.graphql.error.count{resolver:RESOLVER}.as_count()" \
-  --data-urlencode "from=$AFTER_START" --data-urlencode "to=$AFTER_END" > /tmp/${RESOLVER}_after_errors.json &
-
-wait
-echo "Queries complete for ${RESOLVER}"
 ```
+
+**Time windows:**
+- BEFORE: `(mergedAt - window_hours)` to `mergedAt`
+- AFTER: `mergedAt` to `min(mergedAt + window_hours, now)`
+
+**Curl template (use for each metric below):**
+```bash
+curl -s "https://api.datadoghq.com/api/v1/query" \
+  -H "DD-API-KEY: ${DD_apikey}" -H "DD-APPLICATION-KEY: ${DD_appkey}" -G \
+  --data-urlencode "query=<METRIC_QUERY>" \
+  --data-urlencode "from=<FROM_TIMESTAMP>" --data-urlencode "to=<TO_TIMESTAMP>"
+```
+
+**Metrics to query (each for BEFORE and AFTER windows):**
+| Metric | Query |
+|--------|-------|
+| avg | `avg:ct.consumer.graphql.latency.ms.distribution{resolver:NAME} by {query}` |
+| p50 | `p50:ct.consumer.graphql.latency.ms.distribution{resolver:NAME} by {query}` |
+| p90 | `p90:ct.consumer.graphql.latency.ms.distribution{resolver:NAME} by {query}` |
+| p99 | `p99:ct.consumer.graphql.latency.ms.distribution{resolver:NAME} by {query}` |
+| count | `sum:ct.consumer.graphql.latency.ms.distribution{resolver:NAME}.as_count()` |
+| errors | `sum:ct.consumer.graphql.error.count{resolver:NAME}.as_count()` |
+
+Run all queries in parallel with `&` and `wait`. Save results to `/tmp/${RESOLVER}_before_avg.json`, etc.
 
 ### Step 4: Parse and Display Results
 
@@ -222,53 +165,6 @@ Dashboard: https://app.datadoghq.com/dashboard/52w-7p4-q8a
 ```
 
 **IMPORTANT:** Each resolver MUST have its own complete table with ALL 6 metric rows (avg, p50, p90, p99, request count, error count). Do NOT condense into a summary-only format.
-
-**Python parsing reference:**
-
-```python
-import json
-
-def parse_metric(filepath):
-    with open(filepath) as f:
-        data = json.load(f)
-    if not data.get('series'):
-        return None
-    total_sum, total_count = 0, 0
-    for series in data['series']:
-        points = [p[1] for p in series['pointlist'] if p[1] is not None]
-        total_sum += sum(points)
-        total_count += len(points)
-    return total_sum / total_count if total_count else None
-
-def parse_count(filepath):
-    with open(filepath) as f:
-        data = json.load(f)
-    if not data.get('series'):
-        return 0
-    return sum(sum(p[1] for p in s['pointlist'] if p[1]) for s in data['series'])
-
-def get_resolver_metrics(resolver):
-    return {
-        'before_avg': parse_metric(f'/tmp/{resolver}_before_avg.json'),
-        'after_avg': parse_metric(f'/tmp/{resolver}_after_avg.json'),
-        'before_p50': parse_metric(f'/tmp/{resolver}_before_p50.json'),
-        'after_p50': parse_metric(f'/tmp/{resolver}_after_p50.json'),
-        'before_p90': parse_metric(f'/tmp/{resolver}_before_p90.json'),
-        'after_p90': parse_metric(f'/tmp/{resolver}_after_p90.json'),
-        'before_p99': parse_metric(f'/tmp/{resolver}_before_p99.json'),
-        'after_p99': parse_metric(f'/tmp/{resolver}_after_p99.json'),
-        'before_count': parse_count(f'/tmp/{resolver}_before_count.json'),
-        'after_count': parse_count(f'/tmp/{resolver}_after_count.json'),
-        'before_errors': parse_count(f'/tmp/{resolver}_before_errors.json'),
-        'after_errors': parse_count(f'/tmp/{resolver}_after_errors.json'),
-    }
-
-# For each resolver, get metrics and print table with resolver header
-for resolver in resolvers:
-    metrics = get_resolver_metrics(resolver)
-    print(f"\n## {resolver}\n")
-    # Print table and verdict...
-```
 
 ## Reading the Results
 
