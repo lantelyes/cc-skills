@@ -111,6 +111,11 @@ curl -s "https://api.datadoghq.com/api/v1/query" \
 
 Run all queries in parallel with `&` and `wait`. Save results to `/tmp/${RESOLVER}_before_avg.json`, etc.
 
+**Parsing hint:** Extract average from Datadog JSON with:
+```bash
+jq '.series[0].pointlist | map(.[1]) | add / length' /tmp/file.json
+```
+
 ### Step 4: Parse and Display Results
 
 For each resolver, parse its temp files and display a table with the resolver name as header.
