@@ -11,7 +11,9 @@ Review current branch against a base branch using OpenAI Codex CLI, verify each 
 ## Context
 
 - **Current branch:** !`git branch --show-current`
-- **Default branch:** !`git symbolic-ref refs/remotes/origin/HEAD --short 2>/dev/null | sed 's|origin/||' || echo main`
+- **Default branch:** !`git rev-parse --abbrev-ref origin/HEAD 2>/dev/null`
+
+If default branch shows "origin/main" or "origin/master", use the part after "origin/".
 
 ## Run Review
 
