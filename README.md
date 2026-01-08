@@ -56,9 +56,6 @@ Measure how a PR affected GraphQL resolver latency using Datadog metrics.
 **Triggers:** "measure PR 27416 performance", "how did PR 27416 affect performance?", "measure PR 27416 impact on portfolio resolver"
 
 **Features:**
-- Unicode box-drawn tables with latency metrics (Average, P50, P90, P99)
-- Request count and error rate tracking
-- Change indicators (↓/↑ arrows with percentages)
-- Supports manual resolver specification or auto-detection from changed files
-- Configurable time window (default 24h) with human-readable formatting (1w, 3d, 16h)
-- Warns when post-merge data is shorter than requested window
+- Latency metrics (avg, p50, p90, p99), request count, and error rate
+- Manual resolver specification or auto-detection from changed files
+- Configurable time window (default 24h)
