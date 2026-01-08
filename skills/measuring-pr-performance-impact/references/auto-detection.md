@@ -2,13 +2,20 @@
 
 When user doesn't specify resolvers, trace the dependency chain from changed files to GraphQL resolvers.
 
-## Step 1: Get valid resolver names from Datadog
+## Step 1: Get valid resolver names from Datadog (REQUIRED FIRST)
+
+**YOU MUST run this script BEFORE any code analysis:**
 
 ```bash
 ~/.claude/skills/measuring-pr-performance-impact/scripts/list_resolvers.sh
 ```
 
-Returns list of all resolver names with recent data. **ONLY use names from this list.**
+This returns the ONLY valid resolver names that exist in Datadog metrics.
+
+**IMPORTANT:**
+- Do NOT guess resolver names from code - they won't match Datadog metrics
+- Do NOT skip this step
+- Save this list and cross-reference it in later steps
 
 ## Step 2: Trace dependency chain
 
