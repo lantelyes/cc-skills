@@ -1,42 +1,53 @@
 # Output Format
 
-Tables only. No verbose analysis. Bold changes >20%.
+**IMPORTANT:**
+- Each resolver gets its OWN separate table with a `## resolver_name` heading
+- End with a Summary table
+- NO verbose analysis, commentary, or conclusions - JUST tables
+
+Bold changes >10%.
 
 ```markdown
 # Performance Impact: PR #27416
 
-**PR Title:** <title>
+**Title:** <title>
 **Merged:** <timestamp>
-**Window:** <hours_before>h before / <hours_after>h after merge
+**Window:** 24h before / 14h after
+
+## pricehistoryusd
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| avg | 63ms | 55ms | **-13%** |
+| p50 | 58ms | 51ms | **-11%** |
+| p90 | 111ms | 107ms | -4% |
+| p99 | 108ms | 76ms | **-30%** |
 
 ## performancehistory
 
 | Metric | Before | After | Change |
 |--------|--------|-------|--------|
-| avg | 543ms | 253ms | **-53%** |
-| p50 | 338ms | 289ms | -14% |
-| p90 | 812ms | 520ms | **-36%** |
-| p99 | 990ms | 596ms | **-40%** |
-| requests | 135K | 82K | |
-| errors | 0 | 0 | |
+| avg | 378ms | 409ms | +8% |
+| p50 | 4ms | 5ms | +32% |
+| p90 | 736ms | 551ms | **-25%** |
+| p99 | 818ms | 598ms | **-27%** |
 
 ## portfolio
 
 | Metric | Before | After | Change |
 |--------|--------|-------|--------|
-| avg | 80ms | 236ms | +194% |
-| p50 | 140ms | 148ms | +6% |
-| p90 | 160ms | 155ms | -3% |
-| p99 | 527ms | 442ms | -16% |
-| requests | 101K | 88K | |
-| errors | 0 | 0 | |
+| avg | 77ms | 72ms | -6% |
+| p50 | 141ms | 148ms | +5% |
+| p90 | 161ms | 154ms | -4% |
+| p99 | 527ms | 440ms | **-16%** |
 
 ## Summary
 
-| Resolver | Avg | p99 | Verdict |
-|----------|-----|-----|---------|
-| performancehistory | **-53%** | **-40%** | Improved |
-| portfolio | +194% | -16% | Mixed |
+| Resolver | Avg | p99 |
+|----------|-----|-----|
+| pricehistoryusd | **-13%** | **-30%** |
+| performancehistory | +8% | **-27%** |
+| portfolio | -6% | **-16%** |
 
 [Dashboard](https://app.datadoghq.com/dashboard/52w-7p4-q8a)
 ```
