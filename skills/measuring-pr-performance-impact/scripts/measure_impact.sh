@@ -1,6 +1,6 @@
 #!/bin/bash
 # Usage: ./measure_impact.sh <resolver[,resolver2,...]> <merged_epoch> [window_hours]
-# Outputs formatted markdown with separate table per resolver
+# Outputs formatted table with latency metrics per resolver
 set -e
 
 RESOLVERS="${1:?Usage: measure_impact.sh <resolver[,resolver2,...]> <merged_epoch> [window_hours]}"
