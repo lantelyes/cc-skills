@@ -45,11 +45,9 @@ Scripts are located at: `~/.claude/skills/measuring-pr-performance-impact/script
    - Common values: `24` (1 day), `168` (1 week), `72` (3 days)
    - If PR was recently merged, "after" window will be truncated to now
 
-   Outputs JSON array with `window.hours_before` and `window.hours_after` for each resolver.
+   Outputs formatted markdown with separate table per resolver.
 
-4. **Format output** - See [references/output-format.md](references/output-format.md)
-   - **IMPORTANT:** Each resolver gets its own table with `## resolver_name` heading
-   - Do NOT combine all resolvers into one table
+4. **Print output** - The script outputs formatted markdown directly. Just print it.
 
 ## Error handling
 - PR not merged: "PR #X has not been merged yet"
