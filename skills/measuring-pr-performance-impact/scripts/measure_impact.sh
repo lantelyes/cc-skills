@@ -137,27 +137,9 @@ fmt_change() {
   printf "%s %.0f%%" "$arrow" "$abs_pct"
 }
 
-# Format change for summary (with markdown bold)
-fmt_change_summary() {
-  local pct=$1
-  local abs_pct=$(echo "$pct" | tr -d '-')
-  local sign=""
-  if (( $(echo "$pct > 0" | bc -l) )); then sign="+"; fi
-  if (( $(echo "$abs_pct > 10" | bc -l) )); then
-    printf "**%s%.0f%%**" "$sign" "$pct"
-  else
-    printf "%s%.0f%%" "$sign" "$pct"
-  fi
-}
-
 # Output markdown
 echo "**Window:** ${WINDOW_HOURS}h before / ${ACTUAL_AFTER_HOURS}h after merge"
 echo ""
-
-# Store summary data
-declare -a SUMMARY_RESOLVERS
-declare -a SUMMARY_AVG
-declare -a SUMMARY_P99
 
 # Output for each resolver
 for resolver in "${RESOLVER_ARRAY[@]}"; do
@@ -225,22 +207,8 @@ for resolver in "${RESOLVER_ARRAY[@]}"; do
     "$(fmt_count $before_count)" "$(fmt_count $after_count)" \
     "$err_rate_display"
   echo ""
-
-  # Store for summary
-  SUMMARY_RESOLVERS+=("$resolver")
-  SUMMARY_AVG+=("$(fmt_change_summary $chg_avg)")
-  SUMMARY_P99+=("$(fmt_change_summary $chg_p99)")
 done
 
-# Output summary table
-echo "## Summary"
-echo ""
-echo "| Resolver | Avg | p99 |"
-echo "|----------|-----|-----|"
-for i in "${!SUMMARY_RESOLVERS[@]}"; do
-  echo "| ${SUMMARY_RESOLVERS[$i]} | ${SUMMARY_AVG[$i]} | ${SUMMARY_P99[$i]} |"
-done
-echo ""
 echo "[Dashboard](https://app.datadoghq.com/dashboard/52w-7p4-q8a)"
 
 # Cleanup
