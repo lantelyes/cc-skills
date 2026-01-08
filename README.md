@@ -4,15 +4,13 @@ A collection of custom skills for [Claude Code](https://claude.com/claude-code).
 
 ## Installation
 
-Copy or symlink any skill file into your Claude Code commands directory:
+Symlink the `commands/` folder to your Claude Code commands directory:
 
 ```bash
-# Option 1: Copy a skill
-cp codex-review.md ~/.claude/commands/
-
-# Option 2: Symlink (for easy updates via git pull)
-ln -s /path/to/cc-skills/codex-review.md ~/.claude/commands/
+ln -s /path/to/cc-skills/commands ~/.claude/commands
 ```
+
+This gives you all skills at once, and `git pull` automatically updates them.
 
 ## Available Skills
 
@@ -26,8 +24,8 @@ Runs `codex review --base <branch>`, then manually verifies each finding by exam
 
 ### benchmark-consumer-resolver
 
-Compare GraphQL resolver latency before/after a PR merge using Datadog metrics.
+Measure how a PR affected GraphQL resolver latency and errors in production.
 
 **Usage:** `/benchmark-consumer-resolver --pr <number> [--resolver <name>] [--window <hours>]`
 
-Queries Datadog for resolver latency metrics (avg, p50, p99) before and after a PR merge. Auto-detects affected resolvers from changed files if not specified. Outputs a comparison table showing performance impact.
+Queries Datadog for resolver metrics (avg, p50, p90, p99, request count, error count) before and after a PR merge. Outputs a comparison table showing performance impact with a verdict line summarizing improvements or regressions.
