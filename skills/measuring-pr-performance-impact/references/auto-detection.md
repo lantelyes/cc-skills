@@ -63,12 +63,14 @@ Use the `AskUserQuestion` tool with multi-select:
     "header": "Resolvers",
     "multiSelect": true,
     "options": [
-      {"label": "<resolver1>", "description": "<why it may be affected>"},
-      {"label": "<resolver2>", "description": "<why it may be affected>"}
+      {"label": "performancehistory", "description": "Uses price history module"},
+      {"label": "portfolio", "description": "Imports from app.core.performance"}
     ]
   }]
 }
 ```
 
-- List up to 4 detected resolvers, most likely affected first
-- User can select multiple or choose "Other" for custom input
+**IMPORTANT:**
+- Each option MUST be a specific resolver name (e.g., `performancehistory`, `portfolio`)
+- Do NOT add meta-options like "All resolvers", "All of the above", "None", etc.
+- Max 4 options (most likely affected resolvers first)
