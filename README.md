@@ -56,7 +56,7 @@ Measure how a PR affected GraphQL resolver latency and errors in production.
 - Multiple resolvers: `/benchmark-consumer-resolver --pr 27416 --resolver performancehistory,portfolio`
 - Auto-detect: `/benchmark-consumer-resolver --pr 27416`
 
-Queries Datadog for resolver metrics (avg, p50, p90, p99, request count, error count) before and after a PR merge. Outputs a comparison table per resolver showing performance impact with a verdict line.
+Queries Datadog for resolver metrics (avg, p50, p90, p99, request count, error rate) before and after a PR merge. Outputs a formatted Unicode table per resolver showing before/after comparison with change percentages.
 
 ## Available Skills
 
@@ -69,7 +69,8 @@ Measure how a PR affected GraphQL resolver latency using Datadog metrics.
 **Triggers:** "measure PR 27416 performance", "how did PR 27416 affect performance?", "did this PR regress latency?"
 
 **Features:**
-- Auto-detects affected resolvers by tracing dependency chain from changed files
-- Multi-select UI to choose which resolvers to measure
-- Configurable time window (default 24h, supports 1 week, etc.)
-- Bundled scripts for reliable timestamp conversion and Datadog queries
+- Unicode box-drawn tables with latency metrics (Average, P50, P90, P99)
+- Request count and error rate tracking
+- Change indicators (↓/↑ arrows with percentages)
+- Auto-detects affected resolvers from changed files
+- Configurable time window (default 24h)
