@@ -31,13 +31,15 @@ For each finding from Codex:
 
 ## Output Format
 
-```
-## Codex Review: <current-branch> → <base-branch>
+```markdown
+# Codex Review: <current-branch> → <base-branch>
 
 | # | Finding | File | Severity | Verdict |
 |---|---------|------|----------|---------|
-| 1 | Brief title | path:lines | High | Valid |
-| 2 | Brief title | path:lines | Low | False Positive |
+| 1 | Brief title | path:lines | **Critical** | Valid |
+| 2 | Brief title | path:lines | **High** | Valid |
+| 3 | Brief title | path:lines | Medium | False Positive |
+| 4 | Brief title | path:lines | Low | False Positive |
 
 ### Finding 1: <title>
 **Codex:** <what codex reported>
@@ -50,6 +52,8 @@ For each finding from Codex:
 
 **Verdict:** Safe to merge / X blocking issues require attention
 ```
+
+Use **bold** for Critical and High severity levels.
 
 ## Severity Guide
 

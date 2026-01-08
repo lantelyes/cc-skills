@@ -122,51 +122,47 @@ For each resolver, parse its temp files and display a table with the resolver na
 
 **Output format (MUST follow exactly):**
 
-```
-============================================================
-Performance Impact: PR #27416
-PR Title: perf: Optimize price history lookup with VALUES join
-Merged: 2026-01-07T19:28:46Z
-Window: 24h pre-merge / 24h post-merge
-============================================================
+```markdown
+# Performance Impact: PR #27416
+
+**PR Title:** perf: Optimize price history lookup with VALUES join
+**Merged:** 2026-01-07T19:28:46Z
+**Window:** 24h pre-merge / 24h post-merge
 
 ## performancehistory
 
-+-------------------+-----------+-----------+-----------+
-| Metric            | Pre-PR    | Post-PR   | Impact    |
-+-------------------+-----------+-----------+-----------+
-| avg latency       |  555.2ms  |  407.1ms  |   -26.7%  |
-| p50 latency       |  338.0ms  |  289.0ms  |   -14.5%  |
-| p90 latency       |  812.0ms  |  520.0ms  |   -36.0%  |
-| p99 latency       |  990.0ms  |  596.0ms  |   -39.8%  |
-| request count     |    1.2M   |    1.1M   |           |
-| error count       |      0    |      0    |      N/A  |
-+-------------------+-----------+-----------+-----------+
-Verdict: PR improved avg by 27%, p99 by 40%
+| Metric | Pre-PR | Post-PR | Impact |
+|--------|--------|---------|--------|
+| avg latency | 555.2ms | 407.1ms | **-26.7%** |
+| p50 latency | 338.0ms | 289.0ms | -14.5% |
+| p90 latency | 812.0ms | 520.0ms | **-36.0%** |
+| p99 latency | 990.0ms | 596.0ms | **-39.8%** |
+| request count | 1.2M | 1.1M | |
+| error count | 0 | 0 | N/A |
+
+**Verdict:** PR improved avg by 27%, p99 by 40%
 
 ## portfolio
 
-+-------------------+-----------+-----------+-----------+
-| Metric            | Pre-PR    | Post-PR   | Impact    |
-+-------------------+-----------+-----------+-----------+
-| avg latency       |  164.3ms  |  151.1ms  |    -8.1%  |
-| p50 latency       |  120.0ms  |  115.0ms  |    -4.2%  |
-| p90 latency       |  280.0ms  |  260.0ms  |    -7.1%  |
-| p99 latency       |  450.0ms  |  420.0ms  |    -6.7%  |
-| request count     |  800.0K   |  750.0K   |           |
-| error count       |      0    |      0    |      N/A  |
-+-------------------+-----------+-----------+-----------+
-Verdict: No significant change
+| Metric | Pre-PR | Post-PR | Impact |
+|--------|--------|---------|--------|
+| avg latency | 164.3ms | 151.1ms | -8.1% |
+| p50 latency | 120.0ms | 115.0ms | -4.2% |
+| p90 latency | 280.0ms | 260.0ms | -7.1% |
+| p99 latency | 450.0ms | 420.0ms | -6.7% |
+| request count | 800.0K | 750.0K | |
+| error count | 0 | 0 | N/A |
 
-============================================================
-Summary (only if multiple resolvers)
-============================================================
-| Resolver           | Avg Impact | p99 Impact | Verdict     |
-|--------------------|------------|------------|-------------|
-| performancehistory |    -26.7%  |    -39.8%  | Improved    |
-| portfolio          |     -8.1%  |     -6.7%  | No change   |
+**Verdict:** No significant change
 
-Dashboard: https://app.datadoghq.com/dashboard/52w-7p4-q8a
+## Summary (multiple resolvers only)
+
+| Resolver | Avg Impact | p99 Impact | Verdict |
+|----------|------------|------------|---------|
+| performancehistory | **-26.7%** | **-39.8%** | Improved |
+| portfolio | -8.1% | -6.7% | No change |
+
+[Dashboard](https://app.datadoghq.com/dashboard/52w-7p4-q8a)
 ```
 
 **IMPORTANT:** Each resolver MUST have its own complete table with ALL 6 metric rows (avg, p50, p90, p99, request count, error count). Do NOT condense into a summary-only format.
