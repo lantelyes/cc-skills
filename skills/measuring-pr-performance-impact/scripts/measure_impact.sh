@@ -8,14 +8,17 @@ MERGED_EPOCH="${2:?Missing merged_epoch}"
 WINDOW_HOURS="${3:-24}"
 WINDOW_SECS=$((WINDOW_HOURS * 3600))
 
-# Load credentials
-DOGRC="$HOME/.dogrc"
-if [[ ! -f "$DOGRC" ]]; then
-  echo "Error: Datadog credentials not found in $DOGRC" >&2
+# Load credentials (env vars take priority, fallback to ~/.dogrc)
+if [[ -n "$DD_API_KEY" && -n "$DD_APP_KEY" ]]; then
+  DD_apikey="$DD_API_KEY"
+  DD_appkey="$DD_APP_KEY"
+elif [[ -f "$HOME/.dogrc" ]]; then
+  DD_apikey=$(grep '^apikey' "$HOME/.dogrc" | sed 's/apikey *= *//')
+  DD_appkey=$(grep '^appkey' "$HOME/.dogrc" | sed 's/appkey *= *//')
+else
+  echo "Error: Datadog credentials not found. Set DD_API_KEY/DD_APP_KEY env vars or create ~/.dogrc" >&2
   exit 1
 fi
-DD_apikey=$(grep '^apikey' "$DOGRC" | sed 's/apikey *= *//')
-DD_appkey=$(grep '^appkey' "$DOGRC" | sed 's/appkey *= *//')
 
 # Calculate time windows
 BEFORE_START=$((MERGED_EPOCH - WINDOW_SECS))
