@@ -12,6 +12,19 @@ ln -s /path/to/cc-skills/commands ~/.claude/commands
 
 This gives you all skills at once, and `git pull` automatically updates them.
 
+## Requirements
+
+### codex-review
+- [OpenAI Codex CLI](https://github.com/openai/codex) installed and configured
+
+### benchmark-consumer-resolver
+- `gh` CLI authenticated (`gh auth login`)
+- `~/.dogrc` with Datadog credentials:
+  ```
+  apikey = your_api_key
+  appkey = your_app_key
+  ```
+
 ## Available Skills
 
 ### codex-review
