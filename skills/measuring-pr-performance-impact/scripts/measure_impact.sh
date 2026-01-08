@@ -7,6 +7,7 @@ RESOLVERS="${1:?Usage: measure_impact.sh <resolver[,resolver2,...]> <merged_epoc
 MERGED_EPOCH="${2:?Missing merged_epoch}"
 WINDOW_HOURS="${3:-24}"
 WINDOW_SECS=$((WINDOW_HOURS * 3600))
+DASHBOARD_ID="52w-7p4-q8a"
 
 # Load credentials (env vars take priority, fallback to ~/.dogrc)
 if [[ -n "$DD_API_KEY" && -n "$DD_APP_KEY" ]]; then
@@ -22,8 +23,6 @@ fi
 
 # Calculate time windows
 BEFORE_START=$((MERGED_EPOCH - WINDOW_SECS))
-BEFORE_END=$MERGED_EPOCH
-AFTER_START=$MERGED_EPOCH
 AFTER_END=$((MERGED_EPOCH + WINDOW_SECS))
 NOW=$(date +%s)
 if [[ $AFTER_END -gt $NOW ]]; then AFTER_END=$NOW; fi
@@ -65,8 +64,8 @@ IFS=',' read -ra RESOLVER_ARRAY <<< "$RESOLVERS"
 # Query all metrics for all resolvers (parallel)
 for resolver in "${RESOLVER_ARRAY[@]}"; do
   for metric in avg p50 p90 p99 count errors; do
-    query_metric "$resolver" "$metric" "$BEFORE_START" "$BEFORE_END" > "/tmp/${resolver}_before_${metric}" &
-    query_metric "$resolver" "$metric" "$AFTER_START" "$AFTER_END" > "/tmp/${resolver}_after_${metric}" &
+    query_metric "$resolver" "$metric" "$BEFORE_START" "$MERGED_EPOCH" > "/tmp/${resolver}_before_${metric}" &
+    query_metric "$resolver" "$metric" "$MERGED_EPOCH" "$AFTER_END" > "/tmp/${resolver}_after_${metric}" &
   done
 done
 wait
@@ -75,7 +74,7 @@ wait
 read_val() { cat "/tmp/${1}_${2}_${3}" 2>/dev/null || echo "0"; }
 
 # Calculate actual after hours
-ACTUAL_AFTER_SECS=$((AFTER_END - AFTER_START))
+ACTUAL_AFTER_SECS=$((AFTER_END - MERGED_EPOCH))
 ACTUAL_AFTER_HOURS=$((ACTUAL_AFTER_SECS / 3600))
 
 # Warn if after window < 24h
@@ -228,7 +227,7 @@ for resolver in "${RESOLVER_ARRAY[@]}"; do
   echo ""
 done
 
-echo "[Dashboard](https://app.datadoghq.com/dashboard/52w-7p4-q8a)"
+echo "https://app.datadoghq.com/dashboard/${DASHBOARD_ID}"
 
 # Cleanup
 for resolver in "${RESOLVER_ARRAY[@]}"; do
