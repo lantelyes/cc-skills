@@ -41,8 +41,8 @@ Scripts are located at: `~/.claude/skills/measuring-pr-performance-impact/script
    ```
 
    **Window parameter:**
-   - Default: `24` (24 hours before and after merge)
-   - Common values: `24` (1 day), `168` (1 week), `72` (3 days)
+   - Default: `12` (12 hours before and after merge)
+   - Common values: `12` (12h), `24` (1 day), `168` (1 week)
    - If PR was recently merged, "after" window will be truncated to now
 
    Outputs pre-formatted output with Unicode box drawing and aligned columns.

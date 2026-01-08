@@ -58,4 +58,4 @@ Measure how a PR affected GraphQL resolver latency using Datadog metrics.
 **Features:**
 - Latency metrics (avg, p50, p90, p99), request count, and error rate
 - Manual resolver specification or auto-detection from changed files
-- Configurable time window (default 24h)
+- Configurable time window (default 12h)

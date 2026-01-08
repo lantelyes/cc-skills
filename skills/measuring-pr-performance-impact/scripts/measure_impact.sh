@@ -5,7 +5,7 @@ set -e
 
 RESOLVERS="${1:?Usage: measure_impact.sh <resolver[,resolver2,...]> <merged_epoch> [window_hours]}"
 MERGED_EPOCH="${2:?Missing merged_epoch}"
-WINDOW_HOURS="${3:-24}"
+WINDOW_HOURS="${3:-12}"
 WINDOW_SECS=$((WINDOW_HOURS * 3600))
 DASHBOARD_ID="52w-7p4-q8a"
 TMPDIR=$(mktemp -d)
