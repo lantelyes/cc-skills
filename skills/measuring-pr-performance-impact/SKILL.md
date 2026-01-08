@@ -47,10 +47,18 @@ Scripts are located at: `~/.claude/skills/measuring-pr-performance-impact/script
 
    Outputs pre-formatted output with Unicode box drawing and aligned columns.
 
-4. **Display output** - CRITICAL: Display the script output EXACTLY as-is in a code block. Do NOT reformat, summarize, or create your own tables. The script output is already beautifully formatted with Unicode box headers and aligned columns. Just wrap it in a code block:
-   ```
-   <paste script output here verbatim>
-   ```
+4. **Display output** - Your response should be ONLY:
+
+   a. One line with PR title and merge time
+   b. The script output EXACTLY as-is (no code block needed - just paste it directly)
+
+   **DO NOT ADD:**
+   - "Key findings" or analysis
+   - Your own summary or commentary
+   - Reformatted tables
+   - Any text after the script output
+
+   The script output is self-explanatory and beautifully formatted. Let it speak for itself.
 
 ## Error handling
 - PR not merged: "PR #X has not been merged yet"
