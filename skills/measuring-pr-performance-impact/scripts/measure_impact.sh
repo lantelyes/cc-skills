@@ -105,8 +105,6 @@ calc_change() {
 }
 
 # Output markdown
-echo "**Window:** ${WINDOW_HOURS}h before / ${ACTUAL_AFTER_HOURS}h after merge"
-echo ""
 
 # Store summary data
 declare -a SUMMARY_RESOLVERS
@@ -130,7 +128,7 @@ for resolver in "${RESOLVER_ARRAY[@]}"; do
     continue
   fi
 
-  echo "## $resolver"
+  echo "## $resolver (${WINDOW_HOURS}h before / ${ACTUAL_AFTER_HOURS}h after merge)"
   echo ""
   echo "| Metric | Before | After | Change |"
   echo "|--------|--------|-------|--------|"

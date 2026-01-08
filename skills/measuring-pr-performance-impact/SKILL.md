@@ -1,6 +1,6 @@
 ---
 name: measuring-pr-performance-impact
-description: Measures GraphQL resolver latency changes before/after a PR merge using Datadog metrics. Use when analyzing PR performance impact, measuring latency changes, or comparing resolver performance before and after a code change.
+description: Measures GraphQL resolver latency changes before/after PR merges. Supports single PR analysis and multi-PR comparison with per-PR attribution.
 allowed-tools:
   - Bash
   - Read
@@ -17,6 +17,8 @@ Compare GraphQL resolver latency before/after a PR merge.
 - "How did PR 27416 affect performance?"
 - "Measure the performance impact of PR 27416"
 - "Did this PR regress latency?"
+- "Compare the impact of PRs 27416, 27420, and 27425"
+- "Which PR improved performance the most?"
 
 ## CRITICAL: Always Use Bundled Scripts
 
@@ -54,3 +56,23 @@ Scripts are located at: `~/.claude/skills/measuring-pr-performance-impact/script
 - PR not found: "PR #X not found or no access"
 - No data: "No metrics found for resolver X"
 - Missing creds: "Datadog credentials not found in ~/.dogrc"
+
+## Comparing Multiple PRs
+
+When analyzing cumulative impact of multiple PRs on a resolver:
+
+```bash
+~/.claude/skills/measuring-pr-performance-impact/scripts/compare_prs.sh <resolver> <pr1,pr2,pr3> [window_hours]
+```
+
+**Example:**
+```bash
+~/.claude/skills/measuring-pr-performance-impact/scripts/compare_prs.sh performancehistory 27416,27420,27425 24
+```
+
+**Output:** Timeline table showing baseline → each PR's individual contribution → cumulative change.
+
+**Features:**
+- PRs are automatically sorted chronologically
+- Each PR's impact is measured relative to the previous state
+- Overlap detection: Warns if PRs merged < 8h apart (attribution may be unreliable)
