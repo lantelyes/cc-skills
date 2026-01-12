@@ -32,7 +32,15 @@ Scripts are located at: `~/.claude/skills/measuring-pr-performance-impact/script
    ```
    Returns JSON with `title`, `mergedAt`, `mergedAtEpoch`, `files`
 
-2. **Determine resolvers** (if not specified by user)
+2. **Determine resolvers**
+
+   **If user specified a resolver:** Validate it exists
+   - Run `list_resolvers.sh` to get valid resolver names
+   - Check if specified resolver exists (case-insensitive)
+   - If not found: Use `AskUserQuestion` to suggest close matches (resolvers containing similar substrings)
+   - Example: "Resolver 'pricehistry' not found. Did you mean one of these?"
+
+   **If user did NOT specify a resolver:** Auto-detect
    - See [references/auto-detection.md](references/auto-detection.md)
 
 3. **Measure impact** - MUST use script (supports comma-separated resolvers):
