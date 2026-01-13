@@ -65,13 +65,10 @@ query_metric() {
     count)
       query="sum:ct.consumer.graphql.latency.ms.distribution{resolver:${resolver}}.as_count()"
       ;;
-    errors)
-      query="sum:ct.consumer.graphql.error.count{resolver:${resolver}}.as_count()"
-      ;;
   esac
   # Use sum for counts, average for latency metrics
   local agg="add / length"
-  if [[ "$metric" == "count" || "$metric" == "errors" ]]; then
+  if [[ "$metric" == "count" ]]; then
     agg="add"
   fi
   curl -s "https://api.datadoghq.com/api/v1/query" \
@@ -89,7 +86,7 @@ IFS=',' read -ra RESOLVER_ARRAY <<< "$RESOLVERS"
 
 # Query all metrics for all resolvers (parallel)
 for resolver in "${RESOLVER_ARRAY[@]}"; do
-  for metric in avg p50 p90 p99 count errors; do
+  for metric in avg p50 p90 p99 count; do
     query_metric "$resolver" "$metric" "$BEFORE_START" "$MERGED_EPOCH" > "$TMPDIR/${resolver}_before_${metric}" &
     query_metric "$resolver" "$metric" "$MERGED_EPOCH" "$AFTER_END" > "$TMPDIR/${resolver}_after_${metric}" &
   done
@@ -132,11 +129,6 @@ fmt_count() {
   else
     printf "%.0f" "$val"
   fi
-}
-
-# Format percentage
-fmt_pct() {
-  printf "%.2f%%" "$1"
 }
 
 # Calculate percent change (raw number)
@@ -196,8 +188,6 @@ for resolver in "${RESOLVER_ARRAY[@]}"; do
   after_p99=$(read_val "$resolver" after p99)
   before_count=$(read_val "$resolver" before count)
   after_count=$(read_val "$resolver" after count)
-  before_errors=$(read_val "$resolver" before errors)
-  after_errors=$(read_val "$resolver" after errors)
 
   # Warn if no data
   if [[ "$before_avg" == "0" && "$before_p99" == "0" ]]; then
@@ -210,19 +200,6 @@ for resolver in "${RESOLVER_ARRAY[@]}"; do
   chg_p50=$(calc_change_raw $before_p50 $after_p50)
   chg_p90=$(calc_change_raw $before_p90 $after_p90)
   chg_p99=$(calc_change_raw $before_p99 $after_p99)
-
-  # Calculate error rate
-  if (( $(echo "$before_count > 0" | bc -l) )); then
-    before_err_rate=$(echo "scale=4; ($before_errors / $before_count) * 100" | bc -l)
-  else
-    before_err_rate="0"
-  fi
-  if (( $(echo "$after_count > 0" | bc -l) )); then
-    after_err_rate=$(echo "scale=4; ($after_errors / $after_count) * 100" | bc -l)
-  else
-    after_err_rate="0"
-  fi
-  chg_err_rate=$(calc_change_raw $before_err_rate $after_err_rate)
   chg_count=$(calc_change_raw $before_count $after_count)
 
   # Resolver name in uppercase
@@ -245,8 +222,6 @@ for resolver in "${RESOLVER_ARRAY[@]}"; do
   print_row "P99" "$(fmt_ms $before_p99)" "$(fmt_ms $after_p99)" "$(fmt_change $chg_p99)"
   print_sep
   print_row "Requests" "$(fmt_count $before_count)" "$(fmt_count $after_count)" "$(fmt_change $chg_count)"
-  print_sep
-  print_row "Error Rate" "$(fmt_pct $before_err_rate)" "$(fmt_pct $after_err_rate)" "$(fmt_change $chg_err_rate)"
 
   # Table footer
   echo "╚════════════╧══════════╧══════════╧═══════════╝"
